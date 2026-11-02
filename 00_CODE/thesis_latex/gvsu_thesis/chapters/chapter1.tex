@@ -1,0 +1,276 @@
+\chapter{Introduction}
+\label{ch:introduction}
+
+\section{Introduction}
+\label{sec:introduction}
+
+Software development is changing quickly. Large language models (LLMs) first
+entered developers' work as code-completion assistants, such as GitHub Copilot
+and ChatGPT, that suggest lines or functions inside the editor
+\cite{yu2024where}. A newer generation of tools, called \emph{AI coding agents},
+goes further. Agents such as OpenAI Codex, GitHub Copilot's coding agent, Devin,
+Cursor, Claude Code, and Google Jules receive a task, edit several files, run
+commands, and open a complete pull request (PR) on GitHub without a human writing
+the code \cite{li2026aidev,watanabe2025agentic}. Human maintainers then review
+these PRs and decide whether to merge them into the project.
+
+The scale of this change is large. The AIDev dataset, which collects PRs opened
+by AI coding agents on public GitHub repositories, grew from about 0.9 million
+agent PRs in its third version to more than 7.6 million PRs in its fifth version,
+covering activity up to March 2026 \cite{li2026aidev,aidev2026hf}. Many of these
+PRs are accepted: in a study of PRs created with Claude Code, 83.8\% were
+eventually merged \cite{watanabe2025agentic}. AI-generated code is therefore no
+longer an experiment; it is becoming a normal part of the code base of real
+open-source projects.
+
+Most research on AI-generated code looks at the moment \emph{before} the merge:
+whether the code is correct on benchmarks, what errors LLMs make
+\cite{wang2025towards}, whether agent PRs are accepted, and what happens during
+review \cite{watanabe2025agentic}. Much less is known about what happens
+\emph{after} the merge. Merging a PR does not mean that the code is finished.
+Once the code is part of the project, other developers or agents may come back to
+it to correct a defect, a missing check, a design weakness, or a performance
+problem. In software engineering, this kind of work is called \emph{corrective
+maintenance}: changes made to remove faults or deficiencies from code that is
+already in use \cite{swanson1976dimensions}.
+
+Recent studies give the first signs that merged agent code does need such
+corrections. Takerngsaksiri et al. linked merged agent PRs to later PRs in the
+same repositories and found that 22.9\% of merged agent PRs were followed by a
+candidate fix, and 4.5\% by a verified fix, within 30 days; agent merges were
+fixed at 1.62 times the odds of human merges in the same repositories
+\cite{takerngsaksiri2026finishes}. They also found that 69.6\% of the verified
+fixes to agent merges came from the same agent. Sawada et al. tracked files
+created by agents and found that humans authored 83.2\% of the later commits to
+those files \cite{sawada2026maintenance}. Khemissi et al. showed that when
+agent PRs are referenced later, it is often to integrate or fix them
+\cite{khemissi2026humans}. Xia and Miller measured how long agentic code
+survives after it is merged \cite{xia2026postmerge}.
+
+These studies answer an important first question: \emph{how often} is agent code
+changed after the merge. They leave open the questions that matter most for
+improving AI coding agents and the processes around them: \emph{why} the code had
+to be corrected, \emph{what} was wrong with it, and \emph{how} it was corrected.
+They also rely on data that stops in mid-2025, before the large growth of agent
+activity, and they mostly count corrections that are explicitly labelled as bug
+fixes. A deficiency in AI code is not always repaired by a PR called ``fix'': it
+may be corrected through a refactoring, a performance change, or added error
+handling. This thesis addresses these gaps.
+
+\section{Purpose}
+\label{sec:purpose}
+
+The purpose of this thesis is to understand how AI-generated code is corrected
+after it becomes part of a software project. Concretely, the study follows
+merged pull requests written by AI coding agents in open-source Python
+projects, finds the later pull requests that change the same code, and then
+analyses those follow-up changes to separate real corrections of the AI code from
+changes made for other reasons, such as new features.
+
+For each correction, the study aims to explain why it was needed, what
+deficiency it addressed in the original AI code, and how the deficiency was
+repaired. By comparing these corrections across agents and projects, the thesis
+aims to describe recurring weaknesses of agent-written code that are not caught
+by review, tests, or continuous integration before the merge.
+
+The thesis is an empirical study. It does not propose a new AI agent or a new
+tool. It builds on an existing, published linking method
+\cite{takerngsaksiri2026finishes}, adapts it to the most recent version of the
+AIDev dataset, and combines automatic mining with manual analysis of the code
+changes.
+
+\section{Scope}
+\label{sec:scope}
+
+The study includes:
+
+\begin{itemize}
+  \item \textbf{AI-generated pull requests only.} The starting point is pull
+  requests opened by AI coding agents (OpenAI Codex, GitHub Copilot, Devin,
+  Cursor, Claude Code, and Google Jules), as identified by the AIDev dataset
+  \cite{li2026aidev}. Code written by humans is not studied as a starting point.
+  \item \textbf{Merged pull requests.} Only agent PRs that were merged are
+  followed, because only merged code can need maintenance in the project.
+  \item \textbf{Python projects.} The study focuses on repositories whose main
+  language is Python, so that the code changes can be analysed in depth with one
+  set of tools.
+  \item \textbf{Popular repositories.} Following prior work, only repositories
+  with at least 500 GitHub stars are included, to focus on maintained projects
+  rather than personal experiments \cite{takerngsaksiri2026finishes}.
+  \item \textbf{Follow-up changes within a limited time window.} A later pull
+  request is considered a follow-up when it is merged in the same repository
+  within 30 or 60 days after the agent PR and changes at least one of the same
+  files.
+  \item \textbf{Corrective maintenance.} Among the follow-ups, the study analyses
+  the changes that solve a problem in the AI code: a bug, a missing check, a
+  robustness or error-handling problem, a performance problem, or a design or
+  maintainability deficiency.
+\end{itemize}
+
+The study excludes:
+
+\begin{itemize}
+  \item follow-up changes that only add new features, update documentation, or
+  change style without correcting the AI code;
+  \item agent pull requests that were closed without being merged;
+  \item code generated by AI outside pull requests (for example, code pasted from
+  a chat assistant), which cannot be reliably attributed;
+  \item programming languages other than Python;
+  \item private or industrial repositories.
+\end{itemize}
+
+\section{Assumptions}
+\label{sec:assumptions}
+
+The study relies on the following assumptions:
+
+\begin{enumerate}
+  \item \textbf{Agent attribution is correct.} A pull request labelled as
+  agent-authored in AIDev was generated by that agent. AIDev identifies agent PRs
+  from signals such as the bot account, the branch name, or a co-author line
+  \cite{li2026aidev}; human edits inside an agent PR before the merge are
+  possible and are treated as part of the agent PR.
+  \item \textbf{Shared files indicate related work.} When a later PR changes a
+  file that the agent PR also changed, shortly after the merge, it is a
+  candidate follow-up of the agent PR. This is a heuristic: a shared file does
+  not prove that the later change corrects the agent code, which is why the
+  candidates are verified by manual analysis.
+  \item \textbf{The time window is meaningful.} Corrections that are linked to
+  the agent PR usually happen within weeks of the merge. Later changes are
+  less likely to be about the original agent code.
+  \item \textbf{Public repository history is complete enough.} The pull requests,
+  commits, and changed files available in AIDev and on GitHub reflect the
+  changes made to the code, even though some data may be missing (for example,
+  deleted pull requests or very large PRs).
+  \item \textbf{Python projects are representative of agent use.} Python is one
+  of the most common languages of agent PRs: about one quarter of the agent PRs
+  in AIDev version~4 (687,771 of 2,743,854) are in Python repositories. Findings
+  on Python projects therefore describe a large part of real agent activity,
+  although they may not generalize to all languages.
+\end{enumerate}
+
+\section{Research Question}
+\label{sec:research-question}
+
+\subsection{Primary Research Question}
+\label{subsec:primary-research-question}
+
+\begin{quote}
+\emph{How is code written by AI coding agents corrected after it is merged into
+open-source Python projects?}
+\end{quote}
+
+\subsection{Secondary Research Questions}
+\label{subsec:secondary-research-questions}
+
+\begin{description}
+  \item[RQ1 -- Why and how often?] How often, and how soon after the merge, do
+  merged agent pull requests receive follow-up changes that correct them, and
+  how does this differ between AI coding agents?
+  \item[RQ2 -- What was wrong?] What kinds of deficiencies in the agent-written
+  code do these corrections address (for example, functional bugs, missing
+  checks, error handling, performance, or design problems)?
+  \item[RQ3 -- How is it fixed?] How are these deficiencies corrected: what kind
+  and size of code change is made, and who makes it (the same agent, another
+  agent, or a human developer)?
+\end{description}
+
+\subsection{Objectives}
+\label{subsec:objectives}
+
+To answer these questions, the thesis has the following objectives:
+
+\begin{enumerate}
+  \item Review the empirical studies on AI-generated code and agent pull
+  requests, and the datasets they share, to select a suitable data source.
+  \item Build a clean dataset of merged agent pull requests in Python
+  repositories from the most recent version of AIDev.
+  \item Adapt and validate an existing pull-request linker
+  \cite{takerngsaksiri2026finishes}, first by reproducing its published results
+  on the original data, and then by running it on the recent data.
+  \item Identify candidate follow-up pull requests for each merged agent PR, and
+  measure how often and how soon they occur for each agent (RQ1).
+  \item Manually analyse a representative sample of candidate pairs to separate
+  corrections from other changes, and classify what was wrong in the agent code
+  (RQ2) and how it was corrected (RQ3).
+  \item Compare the results across agents and projects and discuss their
+  implications for developers, reviewers, and agent builders.
+\end{enumerate}
+
+\section{Significance}
+\label{sec:significance}
+
+\subsection{Why This Work Matters}
+\label{subsec:why-this-work-matters}
+
+AI coding agents are already producing millions of pull requests, and a large
+share of them are merged into real projects
+\cite{aidev2026hf,watanabe2025agentic}. Every merged agent PR that later needs a
+correction creates hidden work for maintainers: someone has to notice the
+problem, understand code they did not write, and repair it. If this work is not
+measured, the benefits of AI agents may be overestimated.
+
+Knowing \emph{what} goes wrong in merged agent code, and \emph{how} it is
+repaired, is useful for several groups. Developers and reviewers can learn which
+parts of an agent PR need the most attention before they merge it. Teams can
+decide which checks to add to their review process or continuous integration.
+Agent builders can use the recurring deficiencies to improve their agents.
+Researchers gain an updated, post-merge view of agent code based on recent data,
+whereas earlier studies stop in mid-2025.
+
+\subsection{Contributions}
+\label{subsec:contributions}
+
+This thesis makes the following contributions:
+
+\begin{enumerate}
+  \item \textbf{A review of datasets on AI-generated code changes}, describing
+  for each source its size, time period, agents, and how the agent is involved,
+  and explaining why AIDev is the main source of agent pull requests.
+  \item \textbf{An adaptation of a published follow-up linker to AIDev version
+  5}, which no longer contains the task-type and human pull-request tables the
+  original linker requires, together with its validation against the original
+  implementation and published results.
+  \item \textbf{A dataset of candidate follow-up pairs} linking merged agent pull
+  requests to later pull requests in Python projects, up to 2026, for further
+  research.
+  \item \textbf{An empirical analysis of post-merge corrections} of agent code:
+  their frequency per agent (RQ1), a classification of the deficiencies they
+  address (RQ2), and a description of how they are repaired and by whom (RQ3).
+  \item \textbf{A replication package} with the code and data needed to reproduce
+  the results.
+\end{enumerate}
+
+\section{Definitions}
+\label{sec:definitions}
+
+\begin{description}
+  \item[AI coding agent] An AI system that receives a development task and
+  autonomously edits code, runs commands, and submits the result, typically as a
+  pull request (e.g., OpenAI Codex, Devin, Claude Code).
+  \item[Pull request (PR)] A request to merge a set of code changes (one or more
+  commits) into a repository. It is reviewed and then merged or closed.
+  \item[Commit] A single recorded change to the files of a repository, with an
+  author and a message. A pull request contains one or more commits.
+  \item[Agent pull request] A pull request whose code was generated by an AI
+  coding agent, as identified by the AIDev dataset.
+  \item[Merged pull request] A pull request whose changes were accepted into the
+  main code of the repository.
+  \item[Follow-up pull request] A later pull request, merged in the same
+  repository within a fixed time window after an agent pull request, that changes
+  at least one of the same files.
+  \item[Candidate pair] An agent pull request and one of its follow-up pull
+  requests. A candidate pair is not yet evidence of a correction.
+  \item[Corrective maintenance] A change that removes a fault or deficiency from
+  code that is already part of the project \cite{swanson1976dimensions}. In this
+  thesis it covers bugs, missing checks, robustness and error-handling problems,
+  performance problems, and design or maintainability deficiencies in the agent
+  code.
+  \item[Linker] The program that builds candidate pairs from repository data
+  using the repository, the time window, and the shared files.
+  \item[AIDev] A public dataset of pull requests opened by AI coding agents on
+  GitHub, with their repositories, commits, reviews, and comments
+  \cite{li2026aidev}.
+  \item[Observation window] The number of days after the merge of an agent pull
+  request in which follow-ups are searched (30 or 60 days in this thesis).
+\end{description}

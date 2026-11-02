@@ -1,0 +1,55 @@
+% !TeX program = xelatex
+\documentclass[12pt]{report}
+
+% Use [draftfonts] only while drafting if Times New Roman is unavailable.
+\usepackage{gvsu-thesis}
+
+\gvsuThesisTitle{What Happens After the Merge? An Empirical Study of the Corrective Maintenance of AI Coding Agent Pull Requests}
+\gvsuAuthor{Jaweher Hichri}
+\gvsuDegree{Master of Science in Your Program}
+\gvsuCollege{College or School Name}
+\gvsuGraduationMonth{May}
+\gvsuGraduationYear{2026}
+\gvsuCommitteeChair{Dr. Samah Mansour}
+\gvsuCommitteeMemberA{Dr. Mohamed Almukhtar}
+\gvsuCommitteeMemberB{Dr. Committee Member}
+
+\begin{document}
+
+\gvsuStartDocument
+\gvsuMakeTitlePage
+\gvsuMakeApprovalPage
+\gvsuStartFrontMatter
+
+\input{frontmatter/dedication}
+\input{frontmatter/acknowledgements}
+\input{frontmatter/abstract}
+
+\gvsuTableOfContents
+\gvsuListOfTables
+\gvsuListOfFigures
+
+\input{frontmatter/symbols}
+\input{frontmatter/abbreviations}
+
+\input{chapters/chapter1}
+\input{chapters/chapter2}
+\input{chapters/chapter3}
+\input{chapters/chapter4}
+\input{chapters/chapter5}
+
+\gvsuAppendicesStart
+\gvsuAppendixEntry{Appendix A: Supplemental Materials}
+\input{appendices/appendix-a}
+
+\cleardoublepage
+\gvsuAppendixEntry{Appendix B: Reproducibility Checklist}
+\input{appendices/appendix-b}
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliography/References}
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

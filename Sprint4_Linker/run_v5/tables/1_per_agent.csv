@@ -1,0 +1,7 @@
+agent,AI PRs,all_changes – 30 days,fix_only – 30 days,all_changes – 60 days,fix_only – 60 days
+Codex,3491,55.4,38.4,57.6,41.3
+Claude Code,12534,51.8,34.9,56.1,40.0
+Devin,1622,40.7,20.5,44.7,26.2
+Copilot,3968,34.7,20.3,39.6,24.0
+Cursor,827,28.1,12.4,34.7,17.8
+Jules,54,24.1,11.1,24.1,11.1

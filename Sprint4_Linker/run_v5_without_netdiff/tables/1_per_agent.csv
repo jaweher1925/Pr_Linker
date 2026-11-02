@@ -1,0 +1,7 @@
+agent,merged AI PRs,% within 30 d (all_changes),% within 60 d (all_changes),% within 30 d (fix_only),% within 60 d (fix_only)
+Claude_Code,12534,59.2,61.9,43.5,47.9
+Copilot,3968,45.3,49.2,29.0,32.6
+OpenAI_Codex,3491,62.3,63.8,45.0,47.2
+Devin,1622,53.8,54.9,36.5,38.8
+Cursor,827,45.1,52.2,29.1,35.1
+Google_Jules,54,31.5,31.5,14.8,14.8

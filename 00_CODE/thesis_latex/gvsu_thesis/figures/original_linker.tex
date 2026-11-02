@@ -1,0 +1,63 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}\usepackage{courier}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc}
+\definecolor{stA}{HTML}{E6EBF5}\definecolor{stB}{HTML}{E2F7F6}\definecolor{stC}{HTML}{F8F1E6}
+\definecolor{edge}{HTML}{3A3A3A}\definecolor{acc}{HTML}{0032A0}
+\tikzset{
+  box/.style={draw=edge, line width=0.6pt, rounded corners=2pt, fill=white, align=center,
+              font=\small, minimum height=11mm, text width=33mm, inner sep=3pt},
+  data/.style={box, fill=gray!8},
+  db/.style={draw=edge, line width=0.6pt, fill=white, align=center, font=\small, text width=26mm, minimum height=13mm},
+  rule/.style={box, text width=30mm, minimum height=9mm, font=\footnotesize},
+  res/.style={box, line width=0.9pt, draw=acc, text width=33mm},
+  arr/.style={-{Stealth[length=2.2mm]}, line width=0.7pt, draw=edge},
+  stage/.style={rounded corners=4pt, inner sep=7pt},
+  stitle/.style={font=\bfseries\small, anchor=north west, inner sep=2pt},
+  num/.style={circle, fill=acc, text=white, font=\bfseries\scriptsize, inner sep=1.2pt, minimum size=4mm},
+}
+\begin{document}
+\begin{tikzpicture}[node distance=6mm and 9mm]
+\node[db] (aidev) {\textbf{AIDev-pop (v3)}\\[-1pt]\footnotesize 33,596 agent PRs\\[-1pt]\footnotesize (to Jul.\ 2025)};
+\node[box, right=of aidev, yshift=18mm] (pop) {Merged agent PRs ($P$)\\ \footnotesize 6,774 PRs, 5 agents\\ \footnotesize repos $\geq$500 stars};
+\node[box, below=of pop] (hum) {Human baseline\\ \footnotesize 5,044 merged human PRs};
+\node[box, below=of hum] (type) {Task types\\ \footnotesize given by AIDev (\texttt{pr\_task\_type})};
+\node[box, below=of type] (net) {Net-diff file lists\\ \footnotesize base-to-merge (GitHub API)};
+\foreach \n in {pop,hum,type,net} \draw[arr] (aidev.east) -- ++(4mm,0) |- (\n.west);
+
+\node[rule, right=14mm of pop] (r1) {\textbf{H1}\; same repository,\\ after $P$, within 30 days};
+\node[rule, below=4mm of r1] (r2) {\textbf{H2}\; $Q$ typed \texttt{fix}\\ (AIDev task type)};
+\node[rule, below=4mm of r2] (r3) {\textbf{H3}\; co-edits $\geq$1 file\\ of $P$ (net diff)};
+\node[rule, below=4mm of r3] (r4) {\textbf{H4}\; $\geq$1 co-edited file\\ is not boilerplate};
+\draw[arr] (r1) -- (r2); \draw[arr] (r2) -- (r3); \draw[arr] (r3) -- (r4);
+\node[font=\footnotesize\itshape, above=2mm of r1] (pq) {$Q$ = later agent \emph{or} human PR};
+\draw[arr] (pop.east) -- (r1.west);
+\draw[arr] (hum.east) -- ++(4mm,0) |- (r1.west);
+\draw[arr] (net.east) -- ++(10mm,0) |- (r3.west);
+\draw[arr] (type.east) -- ++(7mm,0) |- (r2.west);
+\node[data, right=10mm of r2, yshift=-6mm, text width=30mm] (pairs) {\textbf{Candidate fixes}\\ \footnotesize 2,510 pairs $(P,Q)$\\ \footnotesize 22.9\% of 4,505 agent merges};
+\draw[arr] (r4.east) -- ++(4mm,0) |- (pairs.west);
+
+\node[box, right=12mm of pairs, yshift=14mm] (judge) {\textbf{Verification}\\ \footnotesize human validation\\ \footnotesize + LLM-as-a-judge};
+\node[res, below=6mm of judge] (ver) {\textbf{RQ1}\; verified fixes\\ \footnotesize 4.5\% (203 PRs);\\ \footnotesize precision-adj.\ 4.1\%};
+\node[res, right=10mm of judge, yshift=6mm, text width=30mm] (rq2) {\textbf{RQ2}\; who fixes?\\ \footnotesize 69.6\% same agent\\ 27.4\% humans};
+\node[res, below=5mm of rq2, text width=30mm] (rq3) {\textbf{RQ3}\; who writes\\ the commits?};
+\node[res, below=5mm of rq3, text width=30mm] (rq4) {\textbf{RQ4}\; merge-time\\ signals};
+\draw[arr] (pairs.east) -- ++(4mm,0) |- (judge.west);
+\draw[arr] (judge) -- (ver);
+\draw[arr] (ver.east) -- ++(4mm,0) |- (rq2.west);
+\draw[arr] (ver.east) -- ++(4mm,0) |- (rq3.west);
+\draw[arr] (ver.east) -- ++(4mm,0) |- (rq4.west);
+
+\begin{scope}[on background layer]
+  \coordinate (T) at ($(pop.north)+(0,9mm)$);
+  \coordinate (B) at ($(net.south)+(0,-2mm)$);
+  \node[stage, fill=stA, fit=(aidev)(pop)(net)(T -| pop)(B -| pop)] (SA) {};
+  \node[stage, fill=stB, fit=(pq)(r1)(r4)(pairs)(T -| r1)(B -| r1)] (SB) {};
+  \node[stage, fill=stC, fit=(judge)(ver)(rq2)(rq4)(T -| judge)(B -| judge)] (SC) {};
+\end{scope}
+\node[stitle] at (SA.north west) {\tikz\node[num]{1};\; Data (AIDev v3)};
+\node[stitle] at (SB.north west) {\tikz\node[num]{2};\; Candidate extraction: four heuristics};
+\node[stitle] at (SC.north west) {\tikz\node[num]{3};\; Verification \& analysis};
+\end{tikzpicture}
+\end{document}

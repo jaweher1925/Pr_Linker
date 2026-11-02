@@ -1,0 +1,22 @@
+# secrets
+.env
+**/.env
+*.pem
+
+# separate git repos (already on GitHub)
+00_CODE/evolution-assurance/
+00_CODE/Thesis_Data_Analysis/
+
+# too big for GitHub (>100 MB) / re-created by the scripts
+Sprint3_Dataset/data/AI_PRS_DATASET/AI_PRS_AIDEV_V4_FULL.parquet
+**/candidate_pairs.csv
+**/linker_v5_results.xlsx
+*.duckdb
+
+# temporary files
+__pycache__/
+.venv/
+~$*
+*.bundle
+*.tgz
+_pr*.json
